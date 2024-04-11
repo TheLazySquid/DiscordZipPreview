@@ -1,11 +1,9 @@
-const testUrl = "https://greggman.github.io/unzipit/test/data/large.zip"
-
 import { chainPatch, onStart, onStop } from "lazypluginlib"
 // @ts-ignore vscode sometimes bugs out and can't find the "*.css" module
 import css from './styles.css'
 import ZipPreview from "./ZipPreview"
 
-const fileModule = BdApi.Webpack.getByKeys("isMediaAttachment", "getAttachmentKind")
+const fileModule = BdApi.Webpack.getModule(m => m?.default && m?.default?.toString?.()?.includes("mediaAttachments:"));
 
 let previews = new Map<string, React.ReactElement>()
 
@@ -14,14 +12,14 @@ onStart(() => {
 
     chainPatch(fileModule, (_, args, returnVal) => {
         let props = returnVal.props.children[0].props
-        props.className += " zp-zip"
-
         let url = args[0].url
+
+        props.className += " zp-zip"
 
         // if the preview doesn't exist, create it
         if(!previews.has(url)) {
             const newPreview = BdApi.React.createElement(ZipPreview, {
-                url: args[0].url
+                url
             })
 
             previews.set(url, newPreview)
@@ -38,16 +36,32 @@ onStart(() => {
         }, [content, preview])
 
         props.children = wrapDiv
-    }, {
-        path: ["default"],
-        validate: (_, props) => {
-            return props[0]?.attachment?.content_type == "application/zip"
-        }
-    }, {
-        path: ["props", "children", "props", "children", 0, "type"]
-    }, {
-        path: ["type"]
-    })
+    },
+        { path: ["default"] },
+        { customPath: { finalProp: "type", run(object) {
+            let objs: any[] = [];
+
+            for(let child of object.props.children) {
+                if(!child) continue;
+                if(!Array.isArray(child.props.children)) continue;
+    
+                for(let child2 of child.props.children) {
+                    if(!child2) continue;
+    
+                    let item = child2.props.children.props.props.attachment;
+    
+                    if(item.content_type !== "application/zip") continue;
+    
+                    objs.push(child2.props.children)
+                }
+            }
+
+            return objs;
+        }, }},
+        { path: ["props", "children", "type"] },
+        { path: ["props", "children", "props", "children", 0, "type"] },
+        { path: ["type"] }
+    )
 })
 
 onStop(() => {

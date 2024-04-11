@@ -1,6 +1,6 @@
 /**
  * @name ZipPreview
- * @version 0.1.0
+ * @version 0.2.0
  * @description Lets you see inside zip files, and download individual files, without ever downloading/extracting the zip
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -84,15 +84,32 @@ function chainPatch(module, callback, ...path) {
     function patch(object, depth) {
         // the variable names here are a mess
         let pathPart = path[depth];
-        let patchProp = pathPart.path[pathPart.path.length - 1];
-        let toPatch = object;
-        for (let i = 0; i < pathPart.path.length - 1; i++) {
-            let prop = pathPart.path[i];
-            toPatch = toPatch[prop];
+        let toPatchArray = [];
+        let patchProp;
+        if (pathPart.path) {
+            patchProp = pathPart.path[pathPart.path.length - 1];
+            let toPatch = object;
+            for (let i = 0; i < pathPart.path.length - 1; i++) {
+                let prop = pathPart.path[i];
+                toPatch = toPatch[prop];
+            }
+            toPatchArray.push(toPatch);
         }
+        else if (pathPart.customPath) {
+            patchProp = pathPart.customPath.finalProp;
+            let customPath = pathPart.customPath.run(object);
+            if (Array.isArray(customPath)) {
+                toPatchArray.push(...customPath);
+            }
+            else {
+                toPatchArray.push(customPath);
+            }
+        }
+        if (toPatchArray.length === 0)
+            return;
         // patch the function
         if (!patchedFns[depth]) {
-            let nativeFn = toPatch[patchProp];
+            let nativeFn = toPatchArray[0][patchProp];
             patchedFns[depth] = function (...args) {
                 let returnVal = nativeFn.call(this, ...args);
                 if (pathPart.validate && !pathPart.validate(this, args, returnVal)) {
@@ -106,11 +123,17 @@ function chainPatch(module, callback, ...path) {
                 }
                 return returnVal;
             };
+            // add a dispose function
             disposeFns[depth] = () => {
-                toPatch[patchProp] = nativeFn;
+                for (let item of toPatchArray) {
+                    item[patchProp] = nativeFn;
+                }
             };
         }
-        toPatch[patchProp] = patchedFns[depth];
+        // apply patches
+        for (let item of toPatchArray) {
+            item[patchProp] = patchedFns[depth];
+        }
     }
     const dispose = () => {
         for (let dispose of disposeFns) {
@@ -1414,18 +1437,18 @@ function ZipPreview({ url }) {
 }
 var ZipPreview$1 = React.memo(ZipPreview);
 
-const fileModule = BdApi.Webpack.getByKeys("isMediaAttachment", "getAttachmentKind");
+const fileModule = BdApi.Webpack.getModule(m => m?.default && m?.default?.toString?.()?.includes("mediaAttachments:"));
 let previews = new Map();
 onStart(() => {
     BdApi.DOM.addStyle("ZipPreview", css);
     chainPatch(fileModule, (_, args, returnVal) => {
         let props = returnVal.props.children[0].props;
-        props.className += " zp-zip";
         let url = args[0].url;
+        props.className += " zp-zip";
         // if the preview doesn't exist, create it
         if (!previews.has(url)) {
             const newPreview = BdApi.React.createElement(ZipPreview$1, {
-                url: args[0].url
+                url
             });
             previews.set(url, newPreview);
         }
@@ -1437,16 +1460,24 @@ onStart(() => {
             className: "zp-wrap"
         }, [content, preview]);
         props.children = wrapDiv;
-    }, {
-        path: ["default"],
-        validate: (_, props) => {
-            return props[0]?.attachment?.content_type == "application/zip";
-        }
-    }, {
-        path: ["props", "children", "props", "children", 0, "type"]
-    }, {
-        path: ["type"]
-    });
+    }, { path: ["default"] }, { customPath: { finalProp: "type", run(object) {
+                let objs = [];
+                for (let child of object.props.children) {
+                    if (!child)
+                        continue;
+                    if (!Array.isArray(child.props.children))
+                        continue;
+                    for (let child2 of child.props.children) {
+                        if (!child2)
+                            continue;
+                        let item = child2.props.children.props.props.attachment;
+                        if (item.content_type !== "application/zip")
+                            continue;
+                        objs.push(child2.props.children);
+                    }
+                }
+                return objs;
+            }, } }, { path: ["props", "children", "type"] }, { path: ["props", "children", "props", "children", 0, "type"] }, { path: ["type"] });
 });
 onStop(() => {
     BdApi.DOM.removeStyle("ZipPreview");
