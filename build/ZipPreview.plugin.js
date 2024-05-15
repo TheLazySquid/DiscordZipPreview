@@ -1,6 +1,6 @@
 /**
  * @name ZipPreview
- * @version 0.2.1
+ * @version 0.2.2
  * @description Lets you see inside zip files, and download individual files, without ever downloading/extracting the zip
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -1367,6 +1367,8 @@ let previews = new Map();
 onStart(() => {
     BdApi.DOM.addStyle("ZipPreview", css);
     BdApi.Patcher.after("ZipPreview", fileModule, "default", (_, args, returnVal) => {
+        if (args[0].item.contentType !== "application/zip")
+            return;
         let props = returnVal.props.children[0].props;
         let url = args[0].url;
         props.className += " zp-zip";

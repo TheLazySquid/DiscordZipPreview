@@ -10,7 +10,9 @@ let previews = new Map<string, React.ReactElement>()
 onStart(() => {
     BdApi.DOM.addStyle("ZipPreview", css)
 
-    BdApi.Patcher.after("ZipPreview", fileModule, "default", (_, args: any, returnVal) => { 
+    BdApi.Patcher.after("ZipPreview", fileModule, "default", (_, args: any, returnVal) => {
+        if(args[0].item.contentType !== "application/zip") return
+
         let props = returnVal.props.children[0].props
         let url = args[0].url
     
