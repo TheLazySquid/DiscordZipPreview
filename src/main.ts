@@ -3,14 +3,22 @@ import { onStart, onStop } from "lazypluginlib"
 import css from './styles.css'
 import ZipPreview from "./ZipPreview"
 
-const fileModule = BdApi.Webpack.getByKeys("AttachmentUpload");
+const fileModule = BdApi.Webpack.getModule((exports) => Object.values<any>(exports).some(val => {
+    if(typeof val !== "function") return false
+    return val.toString().includes("ATTACHMENT_PROCESSING:")
+}))
 
 let previews = new Map<string, React.ReactElement>()
 
 onStart(() => {
     BdApi.DOM.addStyle("ZipPreview", css)
 
-    BdApi.Patcher.after("ZipPreview", fileModule, "default", (_, args: any, returnVal) => {
+    let key = (Object.entries(fileModule).find(([_, val]) => {
+        if(typeof val !== "function") return false
+        return val.toString().includes("fileNameLink");
+    }) as [string, Function])[0]
+
+    BdApi.Patcher.after("ZipPreview", fileModule, key, (_, args: any, returnVal) => {
         if(args[0].item.contentType !== "application/zip") return
 
         let props = returnVal.props.children[0].props

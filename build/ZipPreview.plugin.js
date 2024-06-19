@@ -1,6 +1,6 @@
 /**
  * @name ZipPreview
- * @version 0.2.2
+ * @version 0.3.0
  * @description Lets you see inside zip files, and download individual files, without ever downloading/extracting the zip
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -1362,11 +1362,20 @@ function ZipPreview({ url }) {
 }
 var ZipPreview$1 = React.memo(ZipPreview);
 
-const fileModule = BdApi.Webpack.getByKeys("AttachmentUpload");
+const fileModule = BdApi.Webpack.getModule((exports) => Object.values(exports).some(val => {
+    if (typeof val !== "function")
+        return false;
+    return val.toString().includes("ATTACHMENT_PROCESSING:");
+}));
 let previews = new Map();
 onStart(() => {
     BdApi.DOM.addStyle("ZipPreview", css);
-    BdApi.Patcher.after("ZipPreview", fileModule, "default", (_, args, returnVal) => {
+    let key = Object.entries(fileModule).find(([_, val]) => {
+        if (typeof val !== "function")
+            return false;
+        return val.toString().includes("fileNameLink");
+    })[0];
+    BdApi.Patcher.after("ZipPreview", fileModule, key, (_, args, returnVal) => {
         if (args[0].item.contentType !== "application/zip")
             return;
         let props = returnVal.props.children[0].props;
