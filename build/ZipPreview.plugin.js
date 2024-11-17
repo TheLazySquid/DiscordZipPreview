@@ -1,6 +1,6 @@
 /**
  * @name ZipPreview
- * @version 0.3.0
+ * @version 0.3.1
  * @description Lets you see inside zip files, and download individual files, without ever downloading/extracting the zip
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -68,6 +68,81 @@ const onStop = createCallbackHandler("stop");
  * @returns A function to delete the callback
  */
 createCallbackHandler("onSwitch");
+
+/**
+ * Recursively patches a module, running a callback after the innermost patch is called.
+ * Automatically disposes of the patch when the plugin is stopped.
+ * @param module The module to patch
+ * @param callback The callback to run to modify the return value of the innermost patched
+ * @param path A list of lists of properties to patch, in order
+ * @returns A function to dispose of the patch
+ */
+function chainPatch(module, callback, ...path) {
+    let patchedFns = [];
+    let disposeFns = [];
+    patch(module, 0);
+    function patch(object, depth) {
+        // the variable names here are a mess
+        let pathPart = path[depth];
+        let toPatchArray = [];
+        let patchProp;
+        if (pathPart.path) {
+            patchProp = pathPart.path[pathPart.path.length - 1];
+            let toPatch = object;
+            for (let i = 0; i < pathPart.path.length - 1; i++) {
+                let prop = pathPart.path[i];
+                toPatch = toPatch[prop];
+            }
+            toPatchArray.push(toPatch);
+        }
+        else if (pathPart.customPath) {
+            patchProp = pathPart.customPath.finalProp;
+            let customPath = pathPart.customPath.run(object);
+            if (Array.isArray(customPath)) {
+                toPatchArray.push(...customPath);
+            }
+            else {
+                toPatchArray.push(customPath);
+            }
+        }
+        if (toPatchArray.length === 0)
+            return;
+        // patch the function
+        if (!patchedFns[depth]) {
+            let nativeFn = toPatchArray[0][patchProp];
+            patchedFns[depth] = function (...args) {
+                let returnVal = nativeFn.call(this, ...args);
+                if (pathPart.validate && !pathPart.validate(this, args, returnVal)) {
+                    return returnVal;
+                }
+                if (path.length > depth + 1) {
+                    patch(returnVal, depth + 1);
+                }
+                else {
+                    callback(this, args, returnVal);
+                }
+                return returnVal;
+            };
+            // add a dispose function
+            disposeFns[depth] = () => {
+                for (let item of toPatchArray) {
+                    item[patchProp] = nativeFn;
+                }
+            };
+        }
+        // apply patches
+        for (let item of toPatchArray) {
+            item[patchProp] = patchedFns[depth];
+        }
+    }
+    const dispose = () => {
+        for (let dispose of disposeFns) {
+            dispose();
+        }
+    };
+    onStop(dispose);
+    return dispose;
+}
 
 var css = ".zp-wrap {\r\n    display: flex;\r\n    flex-direction: column;\r\n    width: 100%;\r\n}\r\n\r\n.zp-zip {\r\n    padding: 0px !important;\r\n}\r\n\r\n.zp-content {\r\n    padding: 16px;\r\n    padding-bottom: 10px;\r\n    display: flex;\r\n    align-items: center;\r\n}\r\n\r\n.zp-dropdown-expander {\r\n    width: 100%;\r\n    display: flex;\r\n    height: 16px;\r\n    align-items: center;\r\n    justify-content: center;\r\n    border-top: 2px solid var(--border-subtle);\r\n}\r\n\r\n.zp-dropdown-expander svg {\r\n    width: 16px;\r\n    height: 16px;\r\n    fill: var(--text-link);   \r\n}\r\n\r\n.zp-zip-preview {\r\n    max-height: 0px;\r\n    overflow: hidden;\r\n    transition: max-height 0.3s ease;\r\n    color: var(--text-normal);\r\n    padding-left: 16px;\r\n}\r\n\r\n.zp-zip-preview.expanded {\r\n    max-height: 500px;\r\n    overflow-y: auto;\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.zp-entry {\r\n    color: var(--text-link);\r\n    text-decoration: underline;\r\n    padding-bottom: 2px;\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-filesize {\r\n    color: var(--text-normal);\r\n    text-decoration: none;\r\n    font-size: small;\r\n    padding-left: 5px;\r\n}\r\n\r\n.zp-path {\r\n    color: var(--text-normal);\r\n    padding-bottom: 2px;\r\n    display: flex;\r\n    align-items: center;\r\n    gap: 8px;\r\n}\r\n\r\n.zp-folderReturn {\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-folderReturn svg {\r\n    fill: var(--text-normal);\r\n    width: 20px;\r\n    height: 20px;\r\n}\r\n\r\n.zp-file-preview {\r\n    color: var(--text-normal);\r\n    width: 100%;\r\n    overflow: auto;\r\n    display: block;\r\n    height: 100%;\r\n}\r\n\r\n.zp-file-preview img, .zp-file-preview video {\r\n    width: 100%;\r\n    height: auto;\r\n    z-index: 1;\r\n}\r\n\r\n.zp-file-preview:has(audio) {\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n}\r\n\r\n.zp-preview-override {\r\n    margin: 10px;\r\n    padding: 3px;\r\n    padding-left: 10px;\r\n    padding-right: 10px;\r\n    border-radius: 5px;\r\n    background-color: red;\r\n    color: white;\r\n    font-weight: bold;\r\n    text-align: center;\r\n}\r\n\r\n.zp-file-download {\r\n    position: absolute;\r\n    top: 5px;\r\n    right: 20px;\r\n    cursor: pointer;\r\n    z-index: 99999;\r\n}\r\n\r\n.zp-file-download svg {\r\n    fill: var(--text-link);\r\n    width: 35px;\r\n    height: 35px;\r\n}\r\n";
 
@@ -1365,42 +1440,50 @@ var ZipPreview$1 = React.memo(ZipPreview);
 const fileModule = BdApi.Webpack.getModule((exports) => Object.values(exports).some(val => {
     if (typeof val !== "function")
         return false;
-    return val.toString().includes("ATTACHMENT_PROCESSING:");
+    return val.toString().includes('obscureVideoSpacing]:"VIDEO');
 }));
 let previews = new Map();
+let unChainPatch;
 onStart(() => {
     BdApi.DOM.addStyle("ZipPreview", css);
     let key = Object.entries(fileModule).find(([_, val]) => {
         if (typeof val !== "function")
             return false;
-        return val.toString().includes("fileNameLink");
+        return val.toString().includes("getObscureReason");
     })[0];
-    BdApi.Patcher.after("ZipPreview", fileModule, key, (_, args, returnVal) => {
-        if (args[0].item.contentType !== "application/zip")
-            return;
-        let props = returnVal.props.children[0].props;
-        let url = args[0].url;
-        props.className += " zp-zip";
-        // if the preview doesn't exist, create it
-        if (!previews.has(url)) {
-            const newPreview = BdApi.React.createElement(ZipPreview$1, {
-                url
-            });
-            previews.set(url, newPreview);
-        }
-        let preview = previews.get(url);
+    let preview;
+    unChainPatch = chainPatch(fileModule, (_, __, returnVal) => {
+        // wrap the div in the preview
         const content = BdApi.React.createElement("div", {
             className: "zp-content"
-        }, props.children);
+        }, returnVal.props.children[0].props.children);
         const wrapDiv = BdApi.React.createElement("div", {
             className: "zp-wrap"
         }, [content, preview]);
-        props.children = wrapDiv;
-    });
+        returnVal.props.children[0].props.children = wrapDiv;
+    }, { path: [key], validate(_, args, returnVal) {
+            if (args[0].item.contentType !== "application/zip")
+                return false;
+            // this is a bit of a hack, but also grab the preview inside of the validator
+            let props = returnVal.props.children.props.children[0].props;
+            let url = args[0].item.downloadUrl;
+            props.className += " zp-zip";
+            // if the preview doesn't exist, create it
+            if (!previews.has(url)) {
+                const newPreview = BdApi.React.createElement(ZipPreview$1, {
+                    url
+                });
+                previews.set(url, newPreview);
+            }
+            preview = previews.get(url);
+            return true;
+        }, }, { path: ["props", "children", "props", "children", 0, "type"] }, { path: ["type"] }, { path: ["type"] });
 });
 onStop(() => {
     BdApi.DOM.removeStyle("ZipPreview");
     BdApi.Patcher.unpatchAll("ZipPreview");
+    if (unChainPatch)
+        unChainPatch();
 });
     }
 }
