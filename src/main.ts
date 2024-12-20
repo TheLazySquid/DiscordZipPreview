@@ -30,6 +30,7 @@ onStart(() => {
             className: "zp-wrap"
         }, [content, preview])
 
+        returnVal.props.children[0].props.style = { padding: 0 };
         returnVal.props.children[0].props.children = wrapDiv;
     }, { path: [key], validate(_, args, returnVal) {
         if(args[0].item.contentType !== "application/zip") return false;

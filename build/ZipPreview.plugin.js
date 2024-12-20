@@ -1,6 +1,6 @@
 /**
  * @name ZipPreview
- * @version 0.3.1
+ * @version 0.3.2
  * @description Lets you see inside zip files, and download individual files, without ever downloading/extracting the zip
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -1460,6 +1460,7 @@ onStart(() => {
         const wrapDiv = BdApi.React.createElement("div", {
             className: "zp-wrap"
         }, [content, preview]);
+        returnVal.props.children[0].props.style = { padding: 0 };
         returnVal.props.children[0].props.children = wrapDiv;
     }, { path: [key], validate(_, args, returnVal) {
             if (args[0].item.contentType !== "application/zip")
