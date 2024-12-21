@@ -1,6 +1,6 @@
 /**
  * @name ZipPreview
- * @version 0.3.2
+ * @version 0.4.0
  * @description Lets you see inside zip files, and download individual files, without ever downloading/extracting the zip
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -144,7 +144,7 @@ function chainPatch(module, callback, ...path) {
     return dispose;
 }
 
-var css = ".zp-wrap {\r\n    display: flex;\r\n    flex-direction: column;\r\n    width: 100%;\r\n}\r\n\r\n.zp-zip {\r\n    padding: 0px !important;\r\n}\r\n\r\n.zp-content {\r\n    padding: 16px;\r\n    padding-bottom: 10px;\r\n    display: flex;\r\n    align-items: center;\r\n}\r\n\r\n.zp-dropdown-expander {\r\n    width: 100%;\r\n    display: flex;\r\n    height: 16px;\r\n    align-items: center;\r\n    justify-content: center;\r\n    border-top: 2px solid var(--border-subtle);\r\n}\r\n\r\n.zp-dropdown-expander svg {\r\n    width: 16px;\r\n    height: 16px;\r\n    fill: var(--text-link);   \r\n}\r\n\r\n.zp-zip-preview {\r\n    max-height: 0px;\r\n    overflow: hidden;\r\n    transition: max-height 0.3s ease;\r\n    color: var(--text-normal);\r\n    padding-left: 16px;\r\n}\r\n\r\n.zp-zip-preview.expanded {\r\n    max-height: 500px;\r\n    overflow-y: auto;\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.zp-entry {\r\n    color: var(--text-link);\r\n    text-decoration: underline;\r\n    padding-bottom: 2px;\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-filesize {\r\n    color: var(--text-normal);\r\n    text-decoration: none;\r\n    font-size: small;\r\n    padding-left: 5px;\r\n}\r\n\r\n.zp-path {\r\n    color: var(--text-normal);\r\n    padding-bottom: 2px;\r\n    display: flex;\r\n    align-items: center;\r\n    gap: 8px;\r\n}\r\n\r\n.zp-folderReturn {\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-folderReturn svg {\r\n    fill: var(--text-normal);\r\n    width: 20px;\r\n    height: 20px;\r\n}\r\n\r\n.zp-file-preview {\r\n    color: var(--text-normal);\r\n    width: 100%;\r\n    overflow: auto;\r\n    display: block;\r\n    height: 100%;\r\n}\r\n\r\n.zp-file-preview img, .zp-file-preview video {\r\n    width: 100%;\r\n    height: auto;\r\n    z-index: 1;\r\n}\r\n\r\n.zp-file-preview:has(audio) {\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n}\r\n\r\n.zp-preview-override {\r\n    margin: 10px;\r\n    padding: 3px;\r\n    padding-left: 10px;\r\n    padding-right: 10px;\r\n    border-radius: 5px;\r\n    background-color: red;\r\n    color: white;\r\n    font-weight: bold;\r\n    text-align: center;\r\n}\r\n\r\n.zp-file-download {\r\n    position: absolute;\r\n    top: 5px;\r\n    right: 20px;\r\n    cursor: pointer;\r\n    z-index: 99999;\r\n}\r\n\r\n.zp-file-download svg {\r\n    fill: var(--text-link);\r\n    width: 35px;\r\n    height: 35px;\r\n}\r\n";
+var css = ".zp-wrap {\r\n    display: flex;\r\n    flex-direction: column;\r\n    width: 100%;\r\n}\r\n\r\n.zp-zip {\r\n    padding: 0px !important;\r\n}\r\n\r\n.zp-content {\r\n    padding: 16px;\r\n    padding-bottom: 10px;\r\n    display: flex;\r\n    align-items: center;\r\n}\r\n\r\n.zp-dropdown-expander {\r\n    width: 100%;\r\n    display: flex;\r\n    height: 16px;\r\n    align-items: center;\r\n    justify-content: center;\r\n    border-top: 2px solid var(--border-subtle);\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-dropdown-expander svg {\r\n    width: 16px;\r\n    height: 16px;\r\n    fill: var(--text-link);   \r\n}\r\n\r\n.zp-zip-preview {\r\n    max-height: 0px;\r\n    overflow: hidden;\r\n    transition: max-height 0.3s ease;\r\n    color: var(--text-normal);\r\n    padding-left: 16px;\r\n}\r\n\r\n.zp-zip-preview.expanded {\r\n    max-height: 500px;\r\n    overflow-y: auto;\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.zp-entry {\r\n    color: var(--text-link);\r\n    text-decoration: underline;\r\n    padding-bottom: 2px;\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-filesize {\r\n    color: var(--text-normal);\r\n    text-decoration: none;\r\n    font-size: small;\r\n    padding-left: 5px;\r\n}\r\n\r\n.zp-path {\r\n    color: var(--text-normal);\r\n    padding-bottom: 2px;\r\n    display: flex;\r\n    align-items: center;\r\n    gap: 8px;\r\n}\r\n\r\n.zp-folderReturn {\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-folderReturn svg {\r\n    fill: var(--text-normal);\r\n    width: 20px;\r\n    height: 20px;\r\n}\r\n\r\n.zp-preview-bg {\r\n    background-color: rgba(0, 0, 0, 0.5);\r\n    position: fixed;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    z-index: 3500;\r\n}\r\n\r\n.zp-preview {\r\n    position: absolute;\r\n    background: var(--background-secondary);\r\n    color: var(--text-normal);\r\n    top: 50%;\r\n    left: 50%;\r\n    transform: translate(-50%, -50%);\r\n    max-width: 90%;\r\n    min-width: 30%;\r\n    max-height: 90%;\r\n    min-height: 20%;\r\n    border-radius: 15px;\r\n    overflow: hidden;\r\n    display: flex;\r\n    flex-direction: column;\r\n    user-select: text;\r\n}\r\n\r\n.zp-preview-header {\r\n    height: 45px;\r\n    background: var(--background-primary);\r\n    flex-shrink: 0;\r\n    display: flex;\r\n    align-items: center;\r\n    font-size: 28px;\r\n    padding-left: 20px;\r\n    padding-right: 20px;\r\n    font-weight: 700;\r\n    border-bottom: 1px solid #bbbbbb;\r\n}\r\n\r\n.zp-preview-title {\r\n    flex-grow: 1;\r\n    min-width: 0;\r\n    overflow: hidden;\r\n    text-wrap: nowrap;\r\n    text-overflow: ellipsis;\r\n    height: 100%;\r\n    display: flex;\r\n    align-items: center;\r\n}\r\n\r\n.zp-preview-close {\r\n    height: 35px;\r\n    width: 35px;\r\n    fill: var(--text-normal);\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-preview-content-wrap {\r\n    margin: 20px;\r\n    margin-bottom: 0;\r\n    padding: 20px;\r\n    border: 1px solid #bbbbbb;\r\n    border-radius: 10px;\r\n    min-height: 0;\r\n    overflow: hidden;\r\n    display: flex;\r\n    position: relative;\r\n    align-self: stretch;\r\n    flex-grow: 1;\r\n}\r\n\r\n.zp-preview-copy {\r\n    position: absolute;\r\n    top: 10px;\r\n    right: 10px;\r\n    width: 20px;\r\n    height: 20px;\r\n    fill: var(--text-normal);\r\n    cursor: pointer;\r\n}\r\n\r\n.zp-preview-content {\r\n    min-height: 0;\r\n    overflow: auto;\r\n    width: 100%;\r\n    scrollbar-color: var(--background-primary) var(--background-secondary);\r\n    /* prevents a scrollbar from randomly appearing for some reason */\r\n    padding-top: 3px;\r\n    padding-bottom: 3px;\r\n}\r\n\r\n.zp-preview audio {\r\n    width: 100%;\r\n}\r\n\r\n.zp-preview img {\r\n    \r\n}\r\n\r\n.zp-preview img, .zp-preview video {\r\n    width: 100%;\r\n    height: auto;\r\n}\r\n\r\n.zp-preview-override {\r\n    margin: 10px;\r\n    padding: 3px;\r\n    padding-left: 10px;\r\n    padding-right: 10px;\r\n    border-radius: 5px;\r\n    background-color: red;\r\n    color: white;\r\n    font-weight: bold;\r\n    text-align: center;\r\n}\r\n\r\n.zp-preview-footer {\r\n    height: 55px;\r\n    flex-shrink: 0;\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: flex-end;\r\n    padding-right: 20px;\r\n    align-self: stretch;\r\n}\r\n\r\n.zp-preview-footer .icon {\r\n    height: 35px;\r\n    width: 35px;\r\n    border: none;\r\n    background-color: transparent;\r\n    fill: var(--text-normal);\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n}";
 
 /* unzipit@1.4.3, license MIT */
 /* global SharedArrayBuffer, process */
@@ -1305,11 +1305,20 @@ var FolderReturn = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 2
 
 var Download = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z\" /></svg>";
 
+var Close = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z\" /></svg>";
+
+var Copy = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\"><path d=\"M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z\" /></svg>";
+
 // @ts-ignore
+const highlightModule = BdApi.Webpack.getModule((exports) => exports?.default?.highlight && exports?.default?.hasLanguage).default;
 const React$1 = BdApi.React;
-function FilePreview({ name, type: startType, blob, buff }) {
+function FilePreview({ name, type: startType, blob, buff, onClose }) {
     const [type, setType] = React$1.useState(startType);
     const url = URL.createObjectURL(blob);
+    function close() {
+        URL.revokeObjectURL(url);
+        onClose();
+    }
     function downloadFile() {
         // create a link and click it
         let a = document.createElement("a");
@@ -1319,16 +1328,45 @@ function FilePreview({ name, type: startType, blob, buff }) {
         a.click();
         document.body.removeChild(a);
     }
-    return (React$1.createElement("div", { className: "zp-file-preview" },
-        React$1.createElement("div", { className: "zp-file-download", dangerouslySetInnerHTML: { __html: Download }, onClick: () => downloadFile() }),
-        React$1.createElement("div", { className: "zp-preview-content" },
-            type == "image" ? React$1.createElement("img", { src: url }) : null,
-            type == "video" ? React$1.createElement("video", { autoPlay: true, controls: true, src: url }) : null,
-            type == "audio" ? React$1.createElement("audio", { autoPlay: true, controls: true, src: url }) : null,
-            type == "text" ? React$1.createElement("pre", null, new TextDecoder().decode(buff)) : null,
-            type == "binary" ? React$1.createElement("div", null,
-                "Can't preview this file :(",
-                React$1.createElement("button", { className: "zp-preview-override", onClick: () => setType('text') }, "Do it anyways")) : null)));
+    function copyFile() {
+        if (type == "text") {
+            // @ts-ignore not documented
+            DiscordNative.clipboard.copy(new TextDecoder().decode(buff));
+        }
+        else {
+            // @ts-ignore
+            DiscordNative.clipboard.copyImage(new Uint8Array(buff), name);
+        }
+        BdApi.UI.showToast("Copied!", {
+            type: "success"
+        });
+    }
+    const ext = name.split(".").at(-1);
+    const hasCode = highlightModule.hasLanguage(ext);
+    return (React$1.createElement("div", { className: "zp-preview-bg", onClick: close },
+        React$1.createElement("div", { className: "zp-preview", onClick: (e) => e.stopPropagation() },
+            React$1.createElement("div", { className: "zp-preview-header" },
+                React$1.createElement("div", { className: "zp-preview-title" }, name),
+                React$1.createElement("div", { className: "zp-preview-close", onClick: close, dangerouslySetInnerHTML: { __html: Close } })),
+            React$1.createElement("div", { className: "zp-preview-content-wrap" },
+                type == "text" || type == "image" ? React$1.createElement("div", { className: "zp-preview-copy", onClick: copyFile, dangerouslySetInnerHTML: { __html: Copy } }) : null,
+                React$1.createElement("div", { className: "zp-preview-content" },
+                    type == "image" ? React$1.createElement("img", { src: url }) : null,
+                    type == "video" ? React$1.createElement("video", { autoPlay: true, controls: true, src: url }) : null,
+                    type == "audio" ? React$1.createElement("audio", { autoPlay: true, controls: true, src: url }) : null,
+                    type == "text" ? hasCode ?
+                        React$1.createElement("pre", { dangerouslySetInnerHTML: {
+                                __html: highlightModule.highlight(ext, new TextDecoder().decode(buff), true).value
+                            } })
+                        : React$1.createElement("pre", null, new TextDecoder().decode(buff))
+                        : null,
+                    type == "binary" ? React$1.createElement("div", null,
+                        "Can't preview this file :(",
+                        React$1.createElement("button", { className: "zp-preview-override", onClick: () => setType('text') }, "Do it anyways")) : null)),
+            React$1.createElement("div", { className: "zp-preview-footer" },
+                type == "text" || type == "image" ? React$1.createElement("button", { className: "icon", onClick: copyFile, dangerouslySetInnerHTML: { __html: Copy } }) : null,
+                React$1.createElement("button", { className: "icon", onClick: downloadFile, dangerouslySetInnerHTML: { __html: Download } }),
+                React$1.createElement("button", { onClick: close, className: "bd-button bd-button-filled bd-button-color-brand bd-button-medium" }, "Close")))));
 }
 
 const React = BdApi.React;
@@ -1392,12 +1430,10 @@ function ZipPreview({ url }) {
             if (isBinaryFile(buff))
                 type = "binary";
         }
-        BdApi.UI.alert(name, BdApi.React.createElement(FilePreview, {
-            name,
-            type,
-            blob,
-            buff
-        }));
+        let el = document.createElement("div");
+        document.body.appendChild(el);
+        // @ts-ignore type missing for some reason
+        BdApi.ReactDOM.createRoot(el).render(React.createElement(FilePreview, { name: name, type: type, blob: blob, buff: buff, onClose: () => document.body.removeChild(el) }));
     }
     function formatSize(size) {
         if (size < 1024)

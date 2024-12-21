@@ -54,7 +54,7 @@ onStart(() => {
 
         return true;
     }, },
-    { path: ["props", "children", "props", "children", 0, "type"] }, { path: ["type"]}, { path: ["type"]});
+    { path: ["props", "children", "props", "children", 0, "type"] }, { path: ["type"]}, { path: ["type"] });
 })
 
 onStop(() => {

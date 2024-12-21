@@ -86,12 +86,17 @@ function ZipPreview({ url }: { url: string }) {
             if(isBinaryFile(buff)) type = "binary"
         }
 
-        BdApi.UI.alert(name, BdApi.React.createElement(FilePreview, {
-            name,
-            type,
-            blob,
-            buff
-        }))
+        let el = document.createElement("div");
+        document.body.appendChild(el);
+
+        // @ts-ignore type missing for some reason
+        BdApi.ReactDOM.createRoot(el).render(<FilePreview
+            name={name}
+            type={type}
+            blob={blob}
+            buff={buff}
+            onClose={() => document.body.removeChild(el)}
+        />);
     }
 
     function formatSize(size: number) {
