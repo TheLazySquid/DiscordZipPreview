@@ -1,3 +1,6 @@
+> [!CAUTION]
+> This plugin has been moved to my [new plugin repository](https://github.com/TheLazySquid/BetterDiscordPlugins/tree/main/plugins/ZipPreview). Changes will no longer be reflected here, and this repository may be removed in the future.
+
 # Zip Preview
 
 This is a [BetterDiscord](https://betterdiscord.app) plugin that allows you to look inside of a zip file without having to download and extract it.
